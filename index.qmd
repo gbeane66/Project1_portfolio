@@ -1,7 +1,97 @@
 ---
-title: "."
+title: "Portfolio Project 1: Predicting water potability"
+execute: 
+  echo: true
+
+format:
+  html:
+    page-layout: full
+    theme:
+      light: cosmo
+      dark: [cosmo, theme_dark_custom.scss]
+    code-link: true
+    code-fold: true
 ---
 
-This is a Quarto website1.
+## Goal
+The purpose of this project is to use machine learning to determine whether water is safe for human consumption based on a range of different metrics.
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+## 💧 Step 1.0 | EDA
+
+To begin with let's load the data as a polars DataFrame. Why use the Polars package and not the Pandas package? Speed. The Polars package is much faster than Pandas and, while this is not really a factor in this project owing to the small size of the dataset, it might be useful to familiarise myself with any differences in polars now. In any case,
+
+### Step 1.1 | Import libraries
+```{python}
+
+# Import packages for data manipulation
+import polars as pl
+import numpy as np
+
+# Import packages for data visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+
+# Import packages for data preprocessing
+from sklearn.model_selection import GridSearchCV, train_test_split, PredefinedSplit
+
+
+# Import packages for data modeling
+from sklearn.metrics import accuracy_score, precision_score, recall_score,f1_score
+
+# Import three methods for ML
+from sklearn.tree import DecisionTreeClassifier
+
+from sklearn.ensemble import RandomForestClassifier
+
+from xgboost import XGBClassifier
+from xgboost import plot_importance
+```
+
+### Step 1.2 | Load Data
+```{python}
+data = pl.read_csv('water_potability.csv')
+```
+
+### Step 1.3 | View Data
+```{python}
+data.head()
+```
+
+OK, so there are 10 fields in the DataFrame (`pH`,`Hardness`,`Solids`, `Chloramines`,`Sulfate`,`Conductivity`,`Organic Carbon`,`Trihalomethanes`,`Turbidity` and `Potability`). Of these, `Potability` is the target variable (the one we are trying to predict) and it is *binary* - it can either be **potable** (1) or **not-potable** (0). The other 9 fields are all float values. 
+
+Let's now have an overview of the fields in terms of `nulls` and various other statistics.
+```{python}
+data.describe()
+```
+
+Based on the statistical overview of the fields, the things that jump out at me are:
+
+1) `pH`, `Sulfate` and `Trihalomethanes` all have significant numbers of `null` values. These will have to be either dropped or filled.
+2) Other fields look reasonable, though the range of pH (from 0.0 to 14.0) while physically valid is outrageous. This means some of the tested water sources were extremely acidic (pH 0.0) or extremely basic (pH 14.0).
+
+Are any of the fields obviously correlated with each other? We can do a quick check of this using a simple pairplot.
+```{python}
+sns.pairplot(data.to_pandas(), hue='Potability', corner=True, palette='Greens')
+plt.show()
+```
+
+Another way of showing the same thing
+```{python}
+fig, ax = plt.subplots(figsize=(8,6))
+sns.heatmap(data.to_pandas().corr(),annot=True,cmap='Greens',ax=ax)
+plt.title("Correlation Matrix")
+plt.show()
+```
+
+There does not seem to be any correlation between any of the fields - no obvious linear relationship is apparrent in the correlation plots.
+
+## Step 2.0 | Pre-process data 
+
+Now that we know a little bit more about our data, let's deal with some problems that we identified in Step 1. Namely, what do we do about the null values?
+
+```{python}
+print('Percentage(%) of nulls in each column: \n')
+
+print(data.to_pandas().isna().sum()/len(data)*100)
+```
