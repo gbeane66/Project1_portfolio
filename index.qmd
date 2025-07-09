@@ -152,7 +152,7 @@ df.describe().loc[['min','mean','std','max']].T.style.background_gradient(axis=1
 ```
 Great! It seems that all of the predictor fields have been normalised.
 
-## Step 4.0 | Modelling
+## Step 3.0 | Modelling
 
 First let's split our data into a test and a train set.
 
@@ -188,7 +188,7 @@ def plot_result(y_pred) :
     plt.show()
 ```
 
-### Step 4.1 | Logistic Regression
+### Step 3.1 | Logistic Regression
 
 Let's start with a very simple model.
 
@@ -225,7 +225,7 @@ plot_result(y_pred_lr)
 ```
 Seems OK, but let's try some other models and see if we can do better!
 
-### Step 4.2 | XGBoost
+### Step 3.2 | XGBoost
 One model that often forms quite well is `XGBoost`, let's give it a try.
 ```{python}
 # Instantiate the XGBoost classifier
@@ -266,7 +266,7 @@ plot_result(y_pred_xgb)
 ```
 Better than `LogisticRegression` but I still think we can do better.
 
-### Step 4.3 | SVC
+### Step 3.3 | SVC
 
 ```{python}
 parameters = {
@@ -300,7 +300,7 @@ plot_result(y_pred_svc)
 
 The worst yet, let's try an old favourite `RandomForest`.
 
-### Step 4.4 | RandomForest
+### Step 3.4 | RandomForest
 
 ```{python}
 parameters = {
